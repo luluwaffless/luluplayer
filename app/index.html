@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="index.css">
+    <title id="title">luluplayer</title>
+</head>
+
+<body>
+    <div class="app">
+        <div id="lists" style="display: flex;">
+        </div>
+        <div id="songs" style="display: none;">
+            <a onclick="switchTab(lists)" href="#">Return</a>
+            <div class="listDetails">
+                <img id="listImg">
+                <span id="listName"></span>
+            </div>
+            <div id="songList">
+            </div>
+        </div>
+        <div id="player" style="display: none;">
+            <a onclick="switchTab(songs)" href="#">Return</a>
+            <div class="flex">
+                <div class="songDetails">
+                    <img id="songImg"><br>
+                    <span id="songName"></span><br>
+                    <span id="songArtists"></span><br>
+                    <div class="controls">
+                        <span id="timeDisplay">0:00 / 0:00</span>
+                        <input id="time" type="range" min=0 max=0><br>
+                        <button id="previous">⏮️</button>
+                        <button id="playpause">⏯️</button>
+                        <button id="next">⏭️</button>
+                    </div>
+                </div>
+                <div id="lyrics"></div>
+            </div>
+        </div>
+    </div>
+    <div id="bottom" style="display: none;">
+        <div class="bottom">
+            <img id="bottomImg">
+            <div>
+                <span id="bottomSongName"></span><br>
+                <span id="bottomSongArtists"></span><br>
+                <div class="bottomControls">
+                    <span id="bottomTimeDisplay">0:00 / 0:00</span><br>
+                    <input id="bottomTime" type="range" min=0 max=0><br>
+                    <button id="bottomPrevious">⏮️</button>
+                    <button id="bottomPlaypause">⏯️</button>
+                    <button id="bottomNext">⏭️</button>
+                </div>
+            </div>
+        </div>
+        <span id="bottomLyric"></span>
+    </div>
+</body>
+<script src="index.js"></script>
+
+</html>

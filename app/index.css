@@ -1,0 +1,182 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+body {
+    background-color: black;
+    color: white;
+    font-family: "Montserrat", Arial;
+}
+
+.app {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    position: absolute;
+}
+
+#lists {
+    align-content: center;
+    display: flex;
+    overflow-x: scroll;
+    max-width: 75vw;
+}
+
+a {
+    color: white;
+    text-decoration: none;
+}
+
+.list {
+    background-color: #191919;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px;
+    display: block;
+    text-align: center;
+}
+
+.list img {
+    border-radius: 10px;
+    width: 250px;
+    height: 250px;
+}
+
+.listDetails {
+    background-color: #191919;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px;
+    text-align: left;
+    display: flex;
+    gap: 10px;
+}
+
+.listDetails img {
+    width: 100px;
+    height: 100px;
+}
+
+.song {
+    background-color: #191919;
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px;
+    display: flex;
+    gap: 10px;
+    text-align: left;
+}
+
+.song img {
+    width: 5em;
+    height: 5em;
+}
+
+.artists {
+    opacity: 50%;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background-color: black;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #191919;
+    border-radius: 3px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #101010;
+}
+
+#songList {
+    overflow-y: scroll;
+    height: 500px;
+}
+
+.controls {
+    text-align: center;
+}
+
+pre {
+    margin: 0;
+}
+
+#time {
+    width: 100%;
+}
+
+#songImg {
+    width: 500px;
+    height: 500px;
+}
+
+#bottom {
+    background-color: #191919;
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    flex-direction: column;
+    gap: 10px;
+    bottom: 0%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    position: absolute;
+    text-align: center;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+}
+
+#bottomLyric {
+    text-wrap: wrap;
+}
+
+.bottom {
+    display: flex;
+    width: fit-content;
+    gap: 10px;
+}
+
+.lyric {
+    opacity: 25%;
+}
+
+.currentLyric {
+    opacity: 100%;
+    font-weight: 1000;
+}
+
+.pastLyric {
+    opacity: 50%;
+}
+
+#bottom img {
+    max-height: 100px;
+}
+
+.flex {
+    display: flex;
+    gap: 10px;
+}
+
+.songDetails {
+    text-align: center;
+    height: fit-content;
+}
+
+#lyrics {
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    font-size: xx-large;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}

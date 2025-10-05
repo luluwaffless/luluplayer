@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+import { execSync } from "child_process";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+const __dirname = dirname(fileURLToPath(import.meta.url)).slice(0, -4);
+const args = process.argv.slice(2);
+if (args.length === 0) execSync(`node ${__dirname}/index.js`, { stdio: "inherit" });
+else if (args[0] === "download" && args[1]) execSync(`node ${__dirname}/download.js ${args[1]}`, { stdio: "inherit" });
+else console.log("Usage:\n   luluplayer                # start app\n   luluplayer download <url> # download a track, playlist or album, e.g. from Spotify");

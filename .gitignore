@@ -1,0 +1,5 @@
+utils/credentials.json
+utils/queries.json
+package-lock.json
+node_modules/
+data/
