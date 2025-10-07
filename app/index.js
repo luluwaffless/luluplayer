@@ -16,6 +16,8 @@ const previous = $("previous");
 const playpause = $("playpause");
 const next = $("next");
 const lyrics = $("lyrics");
+const repeat = $("repeat");
+const shuffle = $("shuffle");
 const bottom = $("bottom");
 const bottomImg = $("bottomImg");
 const bottomSongName = $("bottomSongName");
@@ -26,6 +28,8 @@ const bottomPrevious = $("bottomPrevious");
 const bottomPlaypause = $("bottomPlaypause");
 const bottomNext = $("bottomNext");
 const bottomLyric = $("bottomLyric");
+const bottomRepeat = $("bottomRepeat");
+const bottomShuffle = $("bottomShuffle");
 
 const playing = {
     list: null,
@@ -54,7 +58,7 @@ const getText = (url) => fetch(url).then(r => r.text().then(response => {
     return response;
 }));
 const toMSS = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-const play = async (songId, listId) => {
+const play = async (songId, listId, force = false) => {
     const song = cache.songs[songId];
     if (song) {
         const previousList = playing.list;
@@ -92,11 +96,10 @@ const play = async (songId, listId) => {
         bottomSongArtists.innerHTML = song.artists.join(", ");
         songImg.src = song.img;
         bottomImg.src = song.img;
-        if ((previousList && playing.current !== songId && previousList === listId) || (previousList && playing.current === songId && previousList !== listId) || (playing.current !== songId)) {
+        if (force || (previousList && playing.current !== songId && previousList === listId) || (previousList && playing.current === songId && previousList !== listId) || (playing.current !== songId)) {
             playing.current = songId;
             playing.audio.src = song.wav;
         };
-        switchTab(player);
     };
 };
 const openList = (listId) => {
@@ -118,6 +121,7 @@ const openList = (listId) => {
                     playing.position = i;
                     playing.queue = list.tracks;
                     play(songId, listId);
+                    switchTab(player);
                 });
                 songList.appendChild(a);
             };
@@ -170,14 +174,18 @@ playing.audio.addEventListener("timeupdate", () => {
 });
 playing.audio.addEventListener("ended", () => {
     const nextTrack = playing.queue[playing.position + 1];
-    if (nextTrack) {
+    if (nextTrack && playing.repeat !== 2) {
         playing.position += 1;
         play(nextTrack, playing.list);
     } else {
         // repeat list still needs to be added later, for now it just ends
-        if (playing.repeat === 2) play(playing.current, playing.list);
-        else if (playing.repeat === 1 && playing.list) play(playing.queue[0], playing.list);
-        else {
+        if (playing.repeat === 2) {
+            console.log("loop current");
+            play(playing.current, playing.list, true);
+        } else if (playing.repeat === 1 && playing.list) {
+            console.log("loop list");
+            play(playing.queue[0], playing.list);
+        } else {
             if (tab === player) switchTab(songs);
             playing.position = 0;
             playing.queue = [];
@@ -212,12 +220,28 @@ const timeFunc = () => {
     playing.audio.pause();
     playing.audio.currentTime = time.value;
 };
+const repeatFunc = () => {
+    playing.repeat = (playing.repeat + 1) % 3;
+    repeat.innerHTML = playing.repeat;
+    bottomRepeat.innerHTML = playing.repeat;
+};
+const shuffleFunc = () => {
+    for (let i = playing.queue.length - 1; i >= 1; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [playing.queue[i], playing.queue[j]] = [playing.queue[j], playing.queue[i]];
+    };
+    console.log("shuffled");
+};
 
 next.addEventListener("click", nextFunc);
 previous.addEventListener("click", previousFunc);
 playpause.addEventListener("click", playpauseFunc);
 time.addEventListener("input", timeFunc);
+repeat.addEventListener("click", repeatFunc);
+shuffle.addEventListener("click", shuffleFunc);
 bottomNext.addEventListener("click", nextFunc);
 bottomPrevious.addEventListener("click", previousFunc);
 bottomPlaypause.addEventListener("click", playpauseFunc);
 bottomTime.addEventListener("input", timeFunc);
+bottomRepeat.addEventListener("click", repeatFunc);
+bottomShuffle.addEventListener("click", shuffleFunc);
