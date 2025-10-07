@@ -1,3 +1,4 @@
+// elements
 const $ = (el) => document.getElementById(el);
 const title = $("title");
 const lists = $("lists");
@@ -32,7 +33,8 @@ const playing = {
     audio: new Audio(),
     queue: [],
     lrc: [],
-    position: 0
+    position: 0,
+    repeat: 0 // 0 = no repeat, 1 = repeat list, 2 = repeat current
 };
 const cache = {};
 
@@ -52,9 +54,11 @@ const getText = (url) => fetch(url).then(r => r.text().then(response => {
     return response;
 }));
 const toMSS = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-const play = async (id) => {
-    const song = cache.songs[id];
+const play = async (songId, listId) => {
+    const song = cache.songs[songId];
     if (song) {
+        const previousList = playing.list;
+        playing.list = listId;
         const lrcText = await getText(song.lrc);
         const lrc = lrcText.split('\n');
         playing.lrc = [];
@@ -88,30 +92,36 @@ const play = async (id) => {
         bottomSongArtists.innerHTML = song.artists.join(", ");
         songImg.src = song.img;
         bottomImg.src = song.img;
-        if (playing.current !== id) {
-            playing.current = id;
+        if ((previousList && playing.current !== songId && previousList === listId) || (previousList && playing.current === songId && previousList !== listId) || (playing.current !== songId)) {
+            playing.current = songId;
             playing.audio.src = song.wav;
         };
         switchTab(player);
     };
 };
-const openList = (id) => {
-    const list = cache.lists[id];
+const openList = (listId) => {
+    const list = cache.lists[listId];
     if (list) {
-        playing.list = list.id;
         listImg.src = list.img;
         listName.innerHTML = list.name;
         songList.innerHTML = ""
-        get("songs").then(response => list.tracks.forEach(id => {
-            const song = response[id];
-            const a = document.createElement("a");
-            a.className = `song`;
-            a.innerHTML = `<img src="${song.img}"><div>${song.name}<br><span class="artists">${song.artists.join(", ")}</span></div>`;
-            a.href = "#";
-            a.id = id;
-            a.addEventListener("click", () => play(id));
-            songList.appendChild(a);
-        }));
+        get("songs").then(response => {
+            for (let i = 0; i < list.tracks.length; i++) {
+                const songId = list.tracks[i];
+                const song = response[songId];
+                const a = document.createElement("a");
+                a.className = `song`;
+                a.innerHTML = `<img src="${song.img}"><div>${song.name}<br><span class="artists">${song.artists.join(", ")}</span></div>`;
+                a.href = "#";
+                a.id = songId;
+                a.addEventListener("click", () => {
+                    playing.position = i;
+                    playing.queue = list.tracks;
+                    play(songId, listId);
+                });
+                songList.appendChild(a);
+            };
+        });
         switchTab(songs);
     };
 };
@@ -128,6 +138,7 @@ const loadLists = () => get("lists").then(response => {
     };
 });
 
+// audio events
 playing.audio.addEventListener("canplaythrough", () => {
     const str = `0:00 / ${toMSS(playing.audio.duration)}`;
     time.max = playing.audio.duration;
@@ -157,38 +168,56 @@ playing.audio.addEventListener("timeupdate", () => {
         else el.className = "pastLyric";
     };
 });
-next.addEventListener("click", () => {
-    const duration = playing.audio.duration;
-    playing.audio.currentTime = Math.floor(duration);
-});
-previous.addEventListener("click", () => {
-    if (playing.audio.currentTime > 2.5) playing.audio.currentTime = 0;
-    else console.log("do this later lol");
-});
-playpause.addEventListener("click", () => {
-    if (playing.audio.paused && playing.audio.currentTime > 0 && !playing.audio.ended) playing.audio.play();
-    else playing.audio.pause();
-});
-time.addEventListener("input", () => {
-    playing.audio.pause();
-    playing.audio.currentTime = time.value;
+playing.audio.addEventListener("ended", () => {
+    const nextTrack = playing.queue[playing.position + 1];
+    if (nextTrack) {
+        playing.position += 1;
+        play(nextTrack, playing.list);
+    } else {
+        // repeat list still needs to be added later, for now it just ends
+        if (playing.repeat === 2) play(playing.current, playing.list);
+        else if (playing.repeat === 1 && playing.list) play(playing.queue[0], playing.list);
+        else {
+            if (tab === player) switchTab(songs);
+            playing.position = 0;
+            playing.queue = [];
+            playing.list = null;
+            playing.current = null;
+            playing.lrc = null;
+            playing.audio.src = null;
+        };
+    };
 });
 
-bottomNext.addEventListener("click", () => {
+// audio controls
+const nextFunc = () => {
     const duration = playing.audio.duration;
     playing.audio.currentTime = Math.floor(duration);
-});
-bottomPrevious.addEventListener("click", () => {
+};
+const previousFunc = () => {
     if (playing.audio.currentTime > 2.5) playing.audio.currentTime = 0;
-    else console.log("do this later lol");
-});
-bottomPlaypause.addEventListener("click", () => {
+    else {
+        const previousTrack = playing.queue[playing.position - 1];
+        if (previousTrack) {
+            playing.position -= 1;
+            play(previousTrack, playing.list);
+        };
+    };
+};
+const playpauseFunc = () => {
     if (playing.audio.paused && playing.audio.currentTime > 0 && !playing.audio.ended) playing.audio.play();
     else playing.audio.pause();
-});
-bottomTime.addEventListener("input", () => {
+};
+const timeFunc = () => {
     playing.audio.pause();
     playing.audio.currentTime = time.value;
-});
-bottomTime.addEventListener("change", () => playing.audio.play());
-loadLists();
+};
+
+next.addEventListener("click", nextFunc);
+previous.addEventListener("click", previousFunc);
+playpause.addEventListener("click", playpauseFunc);
+time.addEventListener("input", timeFunc);
+bottomNext.addEventListener("click", nextFunc);
+bottomPrevious.addEventListener("click", previousFunc);
+bottomPlaypause.addEventListener("click", playpauseFunc);
+bottomTime.addEventListener("input", timeFunc);

@@ -1,4 +1,8 @@
 # luluplayer
 extremely WIP
 todos: 
-- [ ] queue songs
+- [x] queue songs
+- [ ] loop list/current
+- [ ] ui polish
+- [ ] separate server and app
+  - [ ] declare server address instead of using local
