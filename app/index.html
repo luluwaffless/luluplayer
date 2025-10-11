@@ -13,7 +13,7 @@
         <div id="lists" style="display: flex;">
         </div>
         <div id="songs" style="display: none;">
-            <a onclick="switchTab(lists)" href="#">Return</a>
+            <button class="control" onclick="switchTab(lists)"><img src="img/return.svg"></button>
             <div class="listDetails">
                 <img id="listImg">
                 <span id="listName"></span>
@@ -22,7 +22,7 @@
             </div>
         </div>
         <div id="player" style="display: none;">
-            <a onclick="switchTab(songs)" href="#">Return</a>
+            <button class="control" onclick="switchTab(songs)"><img src="img/return.svg"></button>
             <div class="flex">
                 <div class="songDetails">
                     <img id="songImg"><br>
@@ -31,11 +31,13 @@
                     <div class="controls">
                         <span id="timeDisplay">0:00 / 0:00</span>
                         <input id="time" type="range" min=0 max=0><br>
-                        <button id="shuffle">🔀</button>
-                        <button id="previous">⏮️</button>
-                        <button id="playpause">⏯️</button>
-                        <button id="next">⏭️</button>
-                        <button id="repeat">0</button>
+                        <div class="controlButtons">
+                            <button class="control" id="shuffle"><img src="img/shuffle.svg"></button>
+                            <button class="control" id="previous"><img src="img/previous.svg"></button>
+                            <button class="control" id="playpause"><img src="img/pause.svg"></button>
+                            <button class="control" id="next"><img src="img/next.svg"></button>
+                            <button class="control" id="repeat"><img src="img/norepeat.svg"></button>
+                        </div>
                     </div>
                 </div>
                 <div id="lyrics"></div>
@@ -51,11 +53,13 @@
                 <div class="bottomControls">
                     <span id="bottomTimeDisplay">0:00 / 0:00</span><br>
                     <input id="bottomTime" type="range" min=0 max=0><br>
-                    <button id="bottomShuffle">🔀</button>
-                    <button id="bottomPrevious">⏮️</button>
-                    <button id="bottomPlaypause">⏯️</button>
-                    <button id="bottomNext">⏭️</button>
-                    <button id="bottomRepeat">0</button>
+                    <div class="controls">
+                        <button class="control" id="bottomShuffle"><img src="img/shuffle.svg"></button>
+                        <button class="control" id="bottomPrevious"><img src="img/previous.svg"></button>
+                        <button class="control" id="bottomPlaypause"><img src="img/pause.svg"></button>
+                        <button class="control" id="bottomNext"><img src="img/next.svg"></button>
+                        <button class="control" id="bottomRepeat"><img src="img/norepeat.svg"></button>
+                    </div>
                 </div>
             </div>
         </div>

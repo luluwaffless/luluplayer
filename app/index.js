@@ -57,14 +57,14 @@ const getText = (url) => fetch(url).then(r => r.text().then(response => {
     cache[url] = response;
     return response;
 }));
-const toMSS = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const toMSS = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const play = async (songId, listId, force = false) => {
     const song = cache.songs[songId];
     if (song) {
         const previousList = playing.list;
         playing.list = listId;
         const lrcText = await getText(song.lrc);
-        const lrc = lrcText.split('\n');
+        const lrc = lrcText.split("\n");
         playing.lrc = [];
         const elements = [];
         for (let i = 0; i < lrc.length; i++) {
@@ -74,18 +74,18 @@ const play = async (songId, listId, force = false) => {
                 const lyric = match[3].trim() || "♪";
                 playing.lrc.push({ lyric, timestamp });
 
-                const a = document.createElement("a");
-                a.className = "lyric";
-                a.id = `lyric${i}`;
-                a.href = "#";
-                a.innerText = lyric;
-                a.onclick = (e) => {
+                const span = document.createElement("span");
+                span.className = "lyrics lyric";
+                span.id = `lyric${i}`;
+                span.innerText = lyric;
+                span.addEventListener("click", (e) => {
                     e.preventDefault();
                     playing.audio.currentTime = timestamp;
-                };
-                elements.push(a);
+                });
+                elements.push(span);
             };
         };
+        lyrics.scrollTop = 0;
         lyrics.innerHTML = "";
         elements.forEach(el => lyrics.appendChild(el));
 
@@ -100,6 +100,14 @@ const play = async (songId, listId, force = false) => {
             playing.current = songId;
             playing.audio.src = song.wav;
         };
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: song.name,
+            artist: song.artists.join(", "),
+            album: song.album,
+            artwork: [
+                { src: song.img, sizes: "512x512", type: "image/png" }
+            ]
+        });
     };
 };
 const openList = (listId) => {
@@ -112,18 +120,17 @@ const openList = (listId) => {
             for (let i = 0; i < list.tracks.length; i++) {
                 const songId = list.tracks[i];
                 const song = response[songId];
-                const a = document.createElement("a");
-                a.className = `song`;
-                a.innerHTML = `<img src="${song.img}"><div>${song.name}<br><span class="artists">${song.artists.join(", ")}</span></div>`;
-                a.href = "#";
-                a.id = songId;
-                a.addEventListener("click", () => {
+                const btn = document.createElement("button");
+                btn.className = `song`;
+                btn.innerHTML = `<img src="${song.img}"><div>${song.name}<br><span class="artists">${song.artists.join(", ")}</span></div>`;
+                btn.id = songId;
+                btn.addEventListener("click", () => {
                     playing.position = i;
                     playing.queue = list.tracks;
                     play(songId, listId);
                     switchTab(player);
                 });
-                songList.appendChild(a);
+                songList.appendChild(btn);
             };
         });
         switchTab(songs);
@@ -132,17 +139,24 @@ const openList = (listId) => {
 const loadLists = () => get("lists").then(response => {
     lists.innerHTML = "";
     for (const list of Object.values(response)) {
-        const a = document.createElement("a");
-        a.className = `list`;
-        a.innerHTML = `<img src=${list.img}><br>${list.name}`;
-        a.href = "#";
-        a.id = list.id;
-        a.addEventListener("click", () => openList(list.id));
-        lists.appendChild(a)
+        const btn = document.createElement("button");
+        btn.className = `list`;
+        btn.innerHTML = `<img src=${list.img}><br>${list.name}`;
+        btn.id = list.id;
+        btn.addEventListener("click", () => openList(list.id));
+        lists.appendChild(btn)
     };
 });
 
 // audio events
+const updateMediaPosition = () => {
+    if ("setPositionState" in navigator.mediaSession) navigator.mediaSession.setPositionState({
+        duration: playing.audio.duration || 0,
+        playbackRate: playing.audio.playbackRate || 1,
+        position: playing.audio.currentTime || 0
+    });
+};
+navigator.mediaDevices
 playing.audio.addEventListener("canplaythrough", () => {
     const str = `0:00 / ${toMSS(playing.audio.duration)}`;
     time.max = playing.audio.duration;
@@ -152,24 +166,27 @@ playing.audio.addEventListener("canplaythrough", () => {
     playing.audio.play();
 });
 playing.audio.addEventListener("timeupdate", () => {
+    updateMediaPosition();
     const str = `${toMSS(playing.audio.currentTime)} / ${toMSS(playing.audio.duration)}`;
     time.value = playing.audio.currentTime;
     bottomTime.value = playing.audio.currentTime;
     timeDisplay.innerHTML = str;
     bottomTimeDisplay.innerHTML = str;
-    for (let i = 0; i < playing.lrc.length; i++) {
-        const lrc = playing.lrc[i];
-        const nextLyricTimestamp = playing.lrc[i + 1] ? playing.lrc[i + 1].timestamp : playing.audio.duration;
-        const el = $(`lyric${i}`);
-        if (playing.audio.currentTime > lrc.timestamp && playing.audio.currentTime < nextLyricTimestamp) {
-            bottomLyric.innerHTML = lrc.lyric;
-            el.className = "currentLyric";
-            el.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center'
-            });
-        } else if (playing.audio.currentTime < lrc.timestamp) el.className = "lyric";
-        else el.className = "pastLyric";
+    if (playing.lrc) {
+        for (let i = 0; i < playing.lrc.length; i++) {
+            const lrc = playing.lrc[i];
+            const nextLyricTimestamp = playing.lrc[i + 1] ? playing.lrc[i + 1].timestamp : playing.audio.duration;
+            const el = $(`lyric${i}`);
+            if (playing.audio.currentTime > lrc.timestamp && playing.audio.currentTime < nextLyricTimestamp) {
+                bottomLyric.innerHTML = lrc.lyric;
+                el.className = "lyrics currentLyric";
+                el.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            } else if (playing.audio.currentTime < lrc.timestamp) el.className = "lyrics lyric";
+            else el.className = "lyrics pastLyric";
+        };
     };
 });
 playing.audio.addEventListener("ended", () => {
@@ -193,9 +210,13 @@ playing.audio.addEventListener("ended", () => {
             playing.current = null;
             playing.lrc = null;
             playing.audio.src = null;
+            bottom.style.display = "none";
+            title.innerHTML = "luluplayer";
         };
     };
 });
+playing.audio.addEventListener("play", updateMediaPosition);
+playing.audio.addEventListener("pause", updateMediaPosition);
 
 // audio controls
 const nextFunc = () => {
@@ -213,17 +234,25 @@ const previousFunc = () => {
     };
 };
 const playpauseFunc = () => {
-    if (playing.audio.paused && playing.audio.currentTime > 0 && !playing.audio.ended) playing.audio.play();
-    else playing.audio.pause();
+    if (playing.audio.paused && playing.audio.currentTime > 0 && !playing.audio.ended) {
+        playing.audio.play();
+        playpause.innerHTML = `<img src="img/pause.svg">`;
+        bottomPlaypause.innerHTML = `<img src="img/pause.svg">`;
+    } else {
+        playing.audio.pause();
+        playpause.innerHTML = `<img src="img/play.svg">`;
+        bottomPlaypause.innerHTML = `<img src="img/play.svg">`;
+    };
 };
 const timeFunc = () => {
     playing.audio.pause();
     playing.audio.currentTime = time.value;
 };
 const repeatFunc = () => {
+    const icons = ["norepeat", "repeat", "repeatone"];
     playing.repeat = (playing.repeat + 1) % 3;
-    repeat.innerHTML = playing.repeat;
-    bottomRepeat.innerHTML = playing.repeat;
+    repeat.innerHTML = `<img src="img/${icons[playing.repeat]}.svg">`;
+    bottomRepeat.innerHTML = `<img src="img/${icons[playing.repeat]}.svg">`;
 };
 const shuffleFunc = () => {
     for (let i = playing.queue.length - 1; i >= 1; i--) {
@@ -245,3 +274,14 @@ bottomPlaypause.addEventListener("click", playpauseFunc);
 bottomTime.addEventListener("input", timeFunc);
 bottomRepeat.addEventListener("click", repeatFunc);
 bottomShuffle.addEventListener("click", shuffleFunc);
+navigator.mediaSession.setActionHandler("nexttrack", nextFunc);
+navigator.mediaSession.setActionHandler("previoustrack", previousFunc);
+navigator.mediaSession.setActionHandler("play", playpauseFunc);
+navigator.mediaSession.setActionHandler("pause", playpauseFunc);
+document.addEventListener("keydown", (e) => {
+    if (e.code !== "Space") return;
+    const active = document.activeElement;
+    if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.isContentEditable)) return;
+    e.preventDefault();
+    playpauseFunc();
+});
